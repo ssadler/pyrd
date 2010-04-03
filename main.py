@@ -3,54 +3,22 @@
 import sys, os, time, re, math, urllib, socket, speedstack, fcntl, termios, struct, getopt
 from urlparse import urlparse
 from functools import partial
-from cStringIO import StringIO
 
 termcolors = {
 	'black': '0;30',
-	#'blue': '0;34',
-	#'green': '0;32',
 	'cyan': '36',
-	#'red': '0;31',
 	'purple': '35',
-	#'brown': '0;33',
-	#'l_grey': '0;37',
-	#'d_grey': '1;30',
-	#'l_blue': '1;34',
-	#'l_green': '1;32',
-	#'l_cyan': '1;36',
-	#'l_red': '1;31',
-	#'l_purple': '1;35',
-	#'white': '1;37',
 	'h_white': '47',
 	'h_red': '41',
 	'h_green': '42',
 	'yellow': '33',
 }
-"""
-'grey': '\033[1;30m%s\033[1;m',
-'red': '\033[1;31m%s\033[1;m',
-'green': '\033[1;32m%s\033[1;m',
-'yellow': '\033[1;33m%s\033[1;m',
-'blue': '\033[1;34m%s\033[1;m',
-'magenta': '\033[1;35m%s\033[1;m',
-'cyan': '\033[1;36m%s\033[1;m',
-'white': '\033[1;37m%s\033[1;m',
-'crimson': '\033[1;38m%s\033[1;m',
-'h_red': '\033[1;41m%s\033[1;m',
-'h_green': '\033[1;42m%s\033[1;m',
-'hbrown': '\033[1;43m%s\033[1;m',
-'hblue': '\033[1;44m%s\033[1;m',
-'hmagenta': '\033[1;45m%s\033[1;m',
-'hcyan': '\033[1;46m%s\033[1;m',
-'hgrey': '\033[1;47m%s\033[1;m',
-'hcrimson': '\033[1;48m%s\033[1;m'
-"""
 
 def format_bytes(b):
 	if b == None: return 'Unknown'
 	if b < 1000: return "%dB" % b
 	if b < 1000000: return "%.1fK" % (math.floor(b/102.4)/10)
-	if b < 1000000000: return "%.1eM" % (math.floor(b/104857.6)/10)
+	if b < 1000000000: return "%.1fM" % (math.floor(b/104857.6)/10)
 	return "%.1fG" % (math.floor(b/107374182.4)/10)
 
 def get_terminal_size():
@@ -171,16 +139,13 @@ class HTTPClient(Client):
 
 		@staticmethod
 		def readrawheaders(s):
-			chunk = StringIO()
-			last4 = '    '
+			chunk = ''
 			for i in xrange(1024):
-				b = s.recv(1)
-				chunk.write(b)
-				last4 = last4[1:] + b
-				if last4 == "\r\n\r\n":
-					chunk = chunk.getvalue()
-					if chunk[:4] == 'HTTP':
-						return chunk
+				chunk += s.recv(1)
+				if "\r\n\r\n" == chunk[-4:]:
+					if chunk[:4] != 'HTTP':
+						break
+					return chunk
 			raise Exception("Invalid Response headers")
 
 		
